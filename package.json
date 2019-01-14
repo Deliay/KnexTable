@@ -14,8 +14,6 @@
     "url": "https://github.com/Deliay/KnexTable"
   },
   "dependencies": {
-    "babel-preset-env": "^1.7.0",
-    "babel-register": "^6.26.0",
     "colorette": "^1.0.7",
     "commander": "^2.19.0",
     "knex": "^0.16.3",

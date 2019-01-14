@@ -5,7 +5,7 @@ module.exports = `  type Operators = '>'|'<>'|'<'|'='|'>='|'<=';
     (callback: (this: TableBuilder<TSrc, TColumn, TReferences, TModel>, builder: TableBuilder<TSrc, TColumn, TReferences, TModel>) => void);
     (callback: (this: TableBuilder<TSrc, TColumn, TReferences, TModel>, builder: TableBuilder<TSrc, TColumn, TReferences, TModel>, ...args: any[]) => void);
   }
-  interface RawQueryBuilderk<TSrc, TColumn extends string, TReferences, TModel> {
+  interface RawQueryBuilder<TSrc, TColumn extends string, TReferences, TModel> {
     (sql: string, ...bindings: Array<any>): TableBuilder<TSrc, TColumn, TReferences, TModel>;
     (sql: string, bindings: Array<any>): TableBuilder<TSrc, TColumn, TReferences, TModel>;
     (raw: knex.Raw): TableBuilder<TSrc, TColumn, TReferences, TModel>;
@@ -172,9 +172,9 @@ module.exports = `  type Operators = '>'|'<>'|'<'|'='|'>='|'<=';
     whereNotNull: WhereNull<TSrc, TColumn, TReferences, TModel>;
     orWhereNotNull: WhereNull<TSrc, TColumn, TReferences, TModel>;
     groupBy: GroupBy<TSrc, TColumn, TReferences, TModel>;
-    groupByRaw: RawQueryBuilderk<TSrc, TColumn, TReferences, TModel>;
+    groupByRaw: RawQueryBuilder<TSrc, TColumn, TReferences, TModel>;
     orderBy: OrderBy<TSrc, TColumn, TReferences, TModel>;
-    orderByRaw: RawQueryBuilderk<TSrc, TColumn, TReferences, TModel>;
+    orderByRaw: RawQueryBuilder<TSrc, TColumn, TReferences, TModel>;
     offset(offset: number): TableBuilder<TSrc, TColumn, TReferences, TModel>;
     limit(limit: number): TableBuilder<TSrc, TColumn, TReferences, TModel>;
     
@@ -211,4 +211,14 @@ module.exports = `  type Operators = '>'|'<>'|'<'|'='|'>='|'<=';
     noOrg(): TableBuilder<TSrc, TColumn, TReferences, TModel>;
 
     then<T>(onFulfill?: (rows: TModel[]) => Bluebird<T>, onReject?: (err: Error) => Bluebird<T>): Bluebird<T>;
-  }`;
+  }
+  interface ExtraSchemaBuilder extends knex.SchemaBuilder {
+    createTable(tableName: string, callback: (tableBuilder: knex.CreateTableBuilder) => any): SchemaBuilder;
+    alterTable(tableName: TableNames, callback: (tableBuilder: CreateTableBuilder) => any): SchemaBuilder;
+    renameTable(oldTableName: TableNames, newTableName: string): Bluebird<void>;
+    dropTable(tableName: TableNames): SchemaBuilder;
+    hasColumn(tableName: TableNames, columnName: string): Bluebird<boolean>;
+    table(tableName: TableNames, callback: (tableBuilder: AlterTableBuilder) => any): Bluebird<void>;
+    dropTableIfExists(tableName: TableNames): SchemaBuilder;
+  }
+`;
