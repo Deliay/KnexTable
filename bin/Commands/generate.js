@@ -140,11 +140,11 @@ declare namespace Mage {
   // All Table QueryBuilder
   ${allTableNames.map((table) => getQueryBuilder(table, TableRefTable.get(table))).join('\n')}
   interface db extends knex {
-    select: Select;
-    columns: Select;
-    column: Select;
-    distinct: ColumnNameQueryBuilder;
-    (tableName: TableNames): knex.QueryBuilder;
+    select: KnexSelect;
+    columns: KnexSelect;
+    column: KnexSelect;
+    distinct: KnexColumnNameQueryBuilder;
+    (tableName: TableNames): db;
 ${allTableNames.map((table) => `    from(tableName: "${table}"): ${table}Builder;
     (tableName: "${table}"): ${table}Builder;`).join('\n')}
   }

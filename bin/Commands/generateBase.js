@@ -3,11 +3,11 @@ module.exports = `  type Operators = '>'|'<>'|'<'|'='|'>='|'<=';
   type OrderByDirection = 'DESC' | 'ASC';
   type QueryCallback<TSrc, TColumn extends string, TReferences, TModel> = (this: TableBuilder<TSrc, TColumn, TReferences, TModel>, builder: TableBuilder<TSrc, TColumn, TReferences, TModel>) => void
   type QueryCallbackWithArgs<TSrc, TColumn extends string, TReferences, TModel> = (this: TableBuilder<TSrc, TColumn, TReferences, TModel>, builder: TableBuilder<TSrc, TColumn, TReferences, TModel>, ...args: any[]) => void
-  interface ColumnNameQueryBuilder {
+  interface KnexColumnNameQueryBuilder {
     (...columnNames: string): db;
     (columnNames: string): db;
   }
-  interface Select extends ColumnNameQueryBuilder {
+  interface KnexSelect extends ColumnNameQueryBuilder {
     (aliases: { [alias: string]: string }): db;
   }
   interface RawQueryBuilder<TSrc, TColumn extends string, TReferences, TModel> {
@@ -199,8 +199,7 @@ module.exports = `  type Operators = '>'|'<>'|'<'|'='|'>='|'<=';
     increment(columnName: TColumn | keyof TModel, amount?: number): TableBuilder<TSrc, TColumn, TReferences, TModel>;
     decrement(columnName: TColumn | keyof TModel, amount?: number): TableBuilder<TSrc, TColumn, TReferences, TModel>;
 
-    insert(data: TModel[], returning?: (keyof TModel)[] | keyof TModel): TableBuilder<TSrc, TColumn, TReferences, TModel>;
-    insert(data: TModel[], returning?: TColumn[] | TColumn): TableBuilder<TSrc, TColumn, TReferences, TModel>;
+    insert(data: TModel | TModel[], returning?: (keyof TModel)[] | keyof TModel): TableBuilder<TSrc, TColumn, TReferences, TModel>;
     returning(column: (keyof TModel)[] | keyof TModel): TableBuilder<TSrc, TColumn, TReferences, TModel>;
     returning(column: TColumn[] | TColumn): TableBuilder<TSrc, TColumn, TReferences, TModel>;
     modify(callback: QueryCallback<TSrc, TColumn, TReferences, TModel>, ...args: any[]): TableBuilder<TSrc, TColumn, TReferences, TModel>;
