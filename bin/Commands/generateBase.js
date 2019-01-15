@@ -1,9 +1,14 @@
 
 module.exports = `  type Operators = '>'|'<>'|'<'|'='|'>='|'<=';
   type OrderByDirection = 'DESC' | 'ASC';
-  interface QueryCallback<TSrc, TColumn extends string, TReferences, TModel> {
-    (callback: (this: TableBuilder<TSrc, TColumn, TReferences, TModel>, builder: TableBuilder<TSrc, TColumn, TReferences, TModel>) => void);
-    (callback: (this: TableBuilder<TSrc, TColumn, TReferences, TModel>, builder: TableBuilder<TSrc, TColumn, TReferences, TModel>, ...args: any[]) => void);
+  type QueryCallback<TSrc, TColumn extends string, TReferences, TModel> = (this: TableBuilder<TSrc, TColumn, TReferences, TModel>, builder: TableBuilder<TSrc, TColumn, TReferences, TModel>) => void
+  type QueryCallbackWithArgs<TSrc, TColumn extends string, TReferences, TModel> = (this: TableBuilder<TSrc, TColumn, TReferences, TModel>, builder: TableBuilder<TSrc, TColumn, TReferences, TModel>, ...args: any[]) => void
+  interface ColumnNameQueryBuilder {
+    (...columnNames: string): db;
+    (columnNames: string): db;
+  }
+  interface Select extends ColumnNameQueryBuilder {
+    (aliases: { [alias: string]: string }): db;
   }
   interface RawQueryBuilder<TSrc, TColumn extends string, TReferences, TModel> {
     (sql: string, ...bindings: Array<any>): TableBuilder<TSrc, TColumn, TReferences, TModel>;
@@ -27,7 +32,6 @@ module.exports = `  type Operators = '>'|'<>'|'<'|'='|'>='|'<=';
     (object: { [x in (keyof TModel)]: TModel[x] }): TableBuilder<TSrc, TColumn, TReferences, TModel>;
     (whereObj: { [x in TColumn]: any }): TableBuilder<TSrc, TColumn, TReferences, TModel>;
     (callback: QueryCallback<TSrc, TColumn, TReferences, TModel>): TableBuilder<TSrc, TColumn, TReferences, TModel>;
-    (raw: knex.Raw): TableBuilder<TSrc, TColumn, TReferences, TModel>;
   }
   interface WhereIn<TSrc, TColumn extends string, TReferences, TModel> {
     (columnName: TColumn | keyof TModel, values: knex.QueryBuilder | any[]): TableBuilder<TSrc, TColumn, TReferences, TModel>;
@@ -213,12 +217,12 @@ module.exports = `  type Operators = '>'|'<>'|'<'|'='|'>='|'<=';
     then<T>(onFulfill?: (rows: TModel[]) => Bluebird<T>, onReject?: (err: Error) => Bluebird<T>): Bluebird<T>;
   }
   interface ExtraSchemaBuilder extends knex.SchemaBuilder {
-    createTable(tableName: string, callback: (tableBuilder: knex.CreateTableBuilder) => any): SchemaBuilder;
-    alterTable(tableName: TableNames, callback: (tableBuilder: CreateTableBuilder) => any): SchemaBuilder;
+    createTable(tableName: string, callback: (tableBuilder: knex.CreateTableBuilder) => any): knex.SchemaBuilder;
+    alterTable(tableName: TableNames, callback: (tableBuilder: knex.CreateTableBuilder) => any): knex.SchemaBuilder;
     renameTable(oldTableName: TableNames, newTableName: string): Bluebird<void>;
-    dropTable(tableName: TableNames): SchemaBuilder;
+    dropTable(tableName: TableNames): knex.SchemaBuilder;
     hasColumn(tableName: TableNames, columnName: string): Bluebird<boolean>;
-    table(tableName: TableNames, callback: (tableBuilder: AlterTableBuilder) => any): Bluebird<void>;
+    table(tableName: TableNames, callback: (tableBuilder: knex.AlterTableBuilder) => any): Bluebird<void>;
     dropTableIfExists(tableName: TableNames): SchemaBuilder;
   }
 `;
