@@ -7,7 +7,7 @@ const color = require('colorette');
  * @typedef {Map<string, Map<string, Column>>} TableMap
  * @typedef {Map<string, Map<string, Usage>>} TableRefMap
  */
-const { resolveDefaultKnexfilePath, getKnexInstance, fromTables, fromColumns, fromUsage } = require("../util");
+const { resolveSchema, sqlTypeToJsType } = require("../util");
 
 /**
  * @param {TableMap} TableMap
@@ -15,29 +15,6 @@ const { resolveDefaultKnexfilePath, getKnexInstance, fromTables, fromColumns, fr
  */
 function getAllTableNames(TableMap) {
   return [...TableMap.keys()]
-}
-
-/**
- * 
- * @param {Column} column 
- */
-function sqlTypeToJsType(column) {
-  switch (column.DATA_TYPE.toLowerCase()) {
-    case "int":
-    case "bigint": 
-    case "decimal": 
-    case "float": { return "number"; }
-    case "varchar":
-    case "longtext":
-    case "mediumtext": 
-    case "text": { return "string"; }
-    case "date":
-    case "timestamp":
-    case "datetime": { return "Date"; }
-    case "tinyint": { return "boolean"; }
-  }
-  console.log("Unknown type:", color.cyan(column.DATA_TYPE), "in", color.magentaBright(`${column.TABLE_NAME}.${column.COLUMN_NAME}`));
-  return column.DATA_TYPE;
 }
 
 /**
@@ -153,57 +130,7 @@ ${allTableNames.map((table) => `    from(tableName: "${table}"): ${table}Builder
 }
 
 async function generate(schema, outputFile) {
-  const config = resolveDefaultKnexfilePath();
-  console.log(config);
-  console.log("Loading...");
-  const knex = getKnexInstance(config);
-  if (!knex) {
-    console.log(color.redBright("Can't load knex"));
-    return;
-  }
-  console.log("Schema:", color.magenta(schema));
-
-  const db = new class {
-    get info() { return knex.withSchema("information_schema"); }
-  }();
-
-  const tables = await db.info
-  .select("*")
-  .from("tables")
-  .where("TABLE_SCHEMA", schema)
-  .where("TABLE_TYPE", "BASE TABLE");
-  const TableMap = new Map();
-  for (const rawTable of tables) {
-    const table = fromTables(rawTable);
-    console.log("Processing:", color.cyan(`${table.TABLE_SCHEMA}.${table.TABLE_NAME}`));
-    const ColumnMap = new Map();
-    const columns = await db.info.select("*").from("columns").where(table);
-    for (const rawColumn of columns) {
-      const column = fromColumns(rawColumn);
-      ColumnMap.set(column.COLUMN_NAME, column);
-    }
-    console.log("\tLoaded:", color.cyan(ColumnMap.size), "Column(s) from database");
-    TableMap.set(table.TABLE_NAME, ColumnMap);
-  }
-  // Table 'A.xxx_id' -ref-> 'B.id' 
-  // mean A ref to B
-  const TableRefMap = new Map();
-  const TableRefTable = new Map();
-  const refs = await db.info
-  .select('*')
-  .from('KEY_COLUMN_USAGE')
-  .where('TABLE_SCHEMA', schema)
-  .whereNotNull('REFERENCED_TABLE_NAME');
-  for (const rawRef of refs) {
-    const ref = fromUsage(rawRef);
-    if (!TableRefMap.has(ref.TABLE_NAME)) {
-      TableRefMap.set(ref.TABLE_NAME, new Map());
-      TableRefTable.set(ref.TABLE_NAME, new Set());
-    }
-    TableRefMap.get(ref.TABLE_NAME).set(ref.COLUMN_NAME, ref);
-    TableRefTable.get(ref.TABLE_NAME).add(ref.REFERENCED_TABLE_NAME);
-  }
-  
+  const { TableMap, TableRefMap, TableRefTable } = await resolveSchema(schema);
   fs.writeFileSync(outputFile, generateDTSContent(TableMap, TableRefMap, TableRefTable));
   console.log("done");
 }
