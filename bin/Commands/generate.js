@@ -2,7 +2,7 @@ const fs = require('fs');
 const color = require('colorette');
 /**
  * @typedef {{TABLE_SCHEMA, TABLE_NAME}} Table
- * @typedef {{TABLE_NAME, COLUMN_NAME, COLUMN_DEFAULT, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUN_LENGTH, COLUMN_KEY, COLUMN_COMMENT}} Column
+ * @typedef {{TABLE_NAME, COLUMN_NAME, COLUMN_DEFAULT, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUN_LENGTH, COLUMN_KEY, COLUMN_COMMENT: string}} Column
  * @typedef {{ TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME }} Usage
  * @typedef {Map<string, Map<string, Column>>} TableMap
  * @typedef {Map<string, Map<string, Usage>>} TableRefMap
@@ -22,7 +22,7 @@ function getAllTableNames(TableMap) {
  * @param {Column} column 
  */
 function getColumn(column) {
-  return `/** ${column.COLUMN_COMMENT}*/${column.COLUMN_NAME}${column.IS_NULLABLE === 'YES' ? '?' : ''}: ${sqlTypeToJsType(column)};`
+  return `/** ${column.COLUMN_COMMENT.replace(/\//g, '\\\/')}*/${column.COLUMN_NAME}${column.IS_NULLABLE === 'YES' ? '?' : ''}: ${sqlTypeToJsType(column)};`
 }
 
 /**
@@ -47,7 +47,7 @@ function getInterfance(TableName, ColumnMap) {
  * @param {Map<string, Column>} ColumnMap 
  */
 function getStringTypeColumns(TableName, ColumnMap) {
-  return `  type ${TableName}Columns = ${getColumnList(ColumnMap).map((name) => `/** ${ColumnMap.get(name).COLUMN_COMMENT.replace('/', '\\/')}*/"${TableName}.${name}"`).join("|")};`
+  return `  type ${TableName}Columns = ${getColumnList(ColumnMap).map((name) => `/** ${ColumnMap.get(name).COLUMN_COMMENT.replace(/\//g, '\\\/')}*/"${TableName}.${name}"`).join("|")};`
 }
 
 /**
