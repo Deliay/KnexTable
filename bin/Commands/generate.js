@@ -47,7 +47,7 @@ function getInterfance(TableName, ColumnMap) {
  * @param {Map<string, Column>} ColumnMap 
  */
 function getStringTypeColumns(TableName, ColumnMap) {
-  return `  type ${TableName}Columns = ${getColumnList(ColumnMap).map((name) => `/** ${ColumnMap.get(name).COLUMN_COMMENT}*/"${TableName}.${name}"`).join("|")};`
+  return `  type ${TableName}Columns = ${getColumnList(ColumnMap).map((name) => `/** ${ColumnMap.get(name).COLUMN_COMMENT.replace('/', '\\/')}*/"${TableName}.${name}"`).join("|")};`
 }
 
 /**
