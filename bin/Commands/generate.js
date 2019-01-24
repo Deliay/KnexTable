@@ -22,7 +22,7 @@ function getAllTableNames(TableMap) {
  * @param {Column} column 
  */
 function getColumn(column) {
-  return `${column.COLUMN_NAME}${column.IS_NULLABLE === 'YES' ? '?' : ''}: ${sqlTypeToJsType(column)};`
+  return `/** ${column.COLUMN_COMMENT}*/${column.COLUMN_NAME}${column.IS_NULLABLE === 'YES' ? '?' : ''}: ${sqlTypeToJsType(column)};`
 }
 
 /**
@@ -47,7 +47,7 @@ function getInterfance(TableName, ColumnMap) {
  * @param {Map<string, Column>} ColumnMap 
  */
 function getStringTypeColumns(TableName, ColumnMap) {
-  return `  type ${TableName}Columns = ${getColumnList(ColumnMap).map((name) => `"${TableName}.${name}"`).join("|")};`
+  return `  type ${TableName}Columns = ${getColumnList(ColumnMap).map((name) => `"/** ${column.COLUMN_COMMENT}*/${TableName}.${name}"`).join("|")};`
 }
 
 /**

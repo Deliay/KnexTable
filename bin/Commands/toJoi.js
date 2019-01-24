@@ -17,7 +17,7 @@ function toCamelCase(string) {
 function loadTableDefine(columnMap, camelCase, prefix = '', suffix = '') {
   const map = [];
   for (const [key, value] of columnMap) {
-    map.push(`${prefix}  ${camelCase ? toCamelCase(key): key}: Joi.${sqlTypeToJoiType(value)}(),${suffix}`)
+    map.push(`${prefix}  ${camelCase ? toCamelCase(key): key}: Joi.${sqlTypeToJoiType(value)}().description('${value.COLUMN_COMMENT}'),${suffix}`)
   }
 
   return map;
