@@ -48,10 +48,12 @@ function sqlTypeToJsType(column) {
     case "int":
     case "bigint": 
     case "decimal": 
+    case "double": 
     case "float": { return "number"; }
     case "varchar":
     case "longtext":
     case "mediumtext": 
+    case "varbinary":
     case "text": { return "string"; }
     case "date":
     case "timestamp":
@@ -95,7 +97,7 @@ function sqlTypeToJoiType(column) {
  * @prop {TableMap} TableMap
  * @prop {TableRefMap} TableRefMap
  * @prop {Map<string, Set<string>>} TableRefTable
- * @returns {ResolveSchema}
+ * @returns {Promise<ResolveSchema>}
 */
 async function resolveSchema(schema) {
   const config = resolveDefaultKnexfilePath();
