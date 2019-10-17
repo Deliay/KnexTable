@@ -23,18 +23,22 @@ function generateModel(columnMap, useDatabaseName, tableName, useMoment) {
   const toEntity = [];
   const toRaw = [];
   const def = [];
-  entity.push(`export interface ${tableName}Entity extends KnexEntity.Entity {`)
-  fieldMap.push(`const ${tableName}Map: KnexEntity.EntityColumnMap<${tableName}Entity> = {`);
-  toEntity.push(`const ${tableName}ConvertToEntity: KnexEntity.EntityColumnConvertToEntity<${tableName}Entity> = {`);
-  toRaw.push(`const ${tableName}ConvertToRaw: KnexEntity.EntityColumnConvertToRaw<${tableName}Entity> = {`);
+  const camelCaseTableName = toCamelCase(tableName);
+  entity.push(`export interface ${camelCaseTableName}Entity extends KnexEntity.Entity {`)
+  fieldMap.push(`const ${camelCaseTableName}Map: KnexEntity.EntityColumnMap<${camelCaseTableName}Entity> = {`);
+  toEntity.push(`const ${camelCaseTableName}ConvertToEntity: KnexEntity.EntityColumnConvertToEntity<${camelCaseTableName}Entity> = {`);
+  toRaw.push(`const ${camelCaseTableName}ConvertToRaw: KnexEntity.EntityColumnConvertToRaw<${camelCaseTableName}Entity> = {`);
   let PK = 'id';
+  let hasDate = false;
   for (const [key, value] of columnMap) {
     const entityFieldKey = useDatabaseName ? key: toCamelCase(key);
     const jsType = sqlTypeToJsType(value);
-    entity.push(`  /** ${value.COLUMN_COMMENT} */`);
-    entity.push(`    ${entityFieldKey}: ${jsType},`);
+    const escapeJsType = useMoment && jsType === 'Date' ? 'moment.Moment' : jsType;
+    entity.push(`  /** ${JSON.stringify(value.COLUMN_COMMENT)} */`);
+    entity.push(`    ${entityFieldKey}: ${escapeJsType},`);
     fieldMap.push(`  ${entityFieldKey}: '${key}',`);
-    if (useMoment && jsType === 'Date') {
+    if (escapeJsType === 'moment.Moment') {
+      hasDate = true;
       toEntity.push(`  ${entityFieldKey}: (raw: any) => moment(raw),`)
       toRaw.push(`  ${entityFieldKey}: (data) => data.toDate(),`);
     }
@@ -47,13 +51,17 @@ function generateModel(columnMap, useDatabaseName, tableName, useMoment) {
   toEntity.push('}');
   toRaw.push('}');
   
-  def.push(`export const ${tableName}Definition: KnexEntity.ModelDefinition<${tableName}Entity> = {`);
+  def.push(`export const ${camelCaseTableName}Definition: KnexEntity.ModelDefinition<${camelCaseTableName}Entity> = {`);
   def.push(`  table: '${tableName}',`);
   def.push(`  key: '${PK}',`);
-  def.push(`  map: ${tableName}Map,`);
-  def.push(`  convertToEntity: ${tableName}ConvertToEntity,`);
-  def.push(`  convertToRaw: ${tableName}ConvertToRaw,`);
+  def.push(`  map: ${camelCaseTableName}Map,`);
+  def.push(`  convertToEntity: ${camelCaseTableName}ConvertToEntity,`);
+  def.push(`  convertToRaw: ${camelCaseTableName}ConvertToRaw,`);
   def.push('}')
+
+  if (useMoment && hasDate) {
+    map.push("import moment from 'moment';");
+  }
 
   map.push([
     entity.join('\n'),
@@ -87,7 +95,7 @@ async function toModel(schema, options) {
   const entities = new Map();
   const baseTableContent = [];
   baseTableContent.push("import * as KnexEntity from 'knexentity';");
-  if (useMoment) {
+  if (useMoment && !toFile) {
     baseTableContent.push("import moment from 'moment';");
   }
   if (tableName && tableName.length > 0) {
@@ -96,12 +104,10 @@ async function toModel(schema, options) {
       return;
     }
     const columnMap = TableMap.get(tableName);
-    const camelCaseTableName = toCamelCase(tableName);
-    entities.set(camelCaseTableName, generateModel(columnMap, useDatabaseName, camelCaseTableName, useMoment).join('\n'));
+    entities.set(camelCaseTableName, generateModel(columnMap, useDatabaseName, tableName, useMoment).join('\n'));
   } else {
     for (const [key, value] of TableMap) {
-      const camelCaseTableName = toCamelCase(key);
-      entities.set(camelCaseTableName, generateModel(value, useDatabaseName, camelCaseTableName, useMoment).join('\n'));
+      entities.set(camelCaseTableName, generateModel(value, useDatabaseName, tableName, useMoment).join('\n'));
     }
   }
 

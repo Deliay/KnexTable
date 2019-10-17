@@ -1,6 +1,6 @@
 {
   "name": "knextable",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Knex DB Typings generator",
   "main": "index.js",
   "scripts": {
