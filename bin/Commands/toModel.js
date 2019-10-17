@@ -86,7 +86,7 @@ async function toModel(schema, options) {
   const { TableMap, TableRefMap, TableRefTable } = result;
   const entities = new Map();
   const baseTableContent = [];
-  baseTableContent.push("import * as KnexEntity from 'KnexEntity';");
+  baseTableContent.push("import * as KnexEntity from 'knexentity';");
   if (useMoment) {
     baseTableContent.push("import moment from 'moment';");
   }
@@ -108,7 +108,8 @@ async function toModel(schema, options) {
   if (genContext) {
     const camelCaseSchema = toCamelCase(schema);
     const context = [
-      `import * as Knex from 'knex';`
+      `import * as Knex from 'knex';`,
+      "import * as KnexEntity from 'knexentity';",
     ];
     const entitiesInterface = [
       `interface ${camelCaseSchema}Entities {`
@@ -130,7 +131,7 @@ async function toModel(schema, options) {
     entitiesInterface.push('}');
     tablesDefinition.push('}');
     context.push(entitiesInterface.join('\n'));
-    context.push(`export class ${camelCaseSchema}Context extends DbContext<${camelCaseSchema}Entities> {`)
+    context.push(`export class ${camelCaseSchema}Context extends KnexEntity.DbContext<${camelCaseSchema}Entities> {`)
     context.push(`  constructor(contextKnex: Knex) { super({ contextKnex, tablesDefinition: ${tablesDefinition.join('\n')}}); }`)
     context.push(`  ${tablesGetter.join('\n  ')}`);
     context.push('}')
