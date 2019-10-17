@@ -14,7 +14,7 @@ Generate knex typings from current configuration db.
 > npx knextable toJoi --help
 ```
 
-## Generate (Knex Entity)[https://github.com/Deliay/KnexEntity] entity & context
+## Generate [Knex Entity](https://github.com/Deliay/KnexEntity) entity & context
 
 ```
 > npx knextable toModel --help
